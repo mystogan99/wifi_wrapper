@@ -79,6 +79,23 @@ class Wifi:
     def scan(self):
         """
         Scans for available networks.
+        Result:
+        [
+            {
+                "IN-USE": "*",
+                "BSSID": "8C:A3:99:36:4B:65",
+                "SSID": "WillowCove",
+                "MODE": "Infra",
+                "CHAN": "1",
+                "RATE": "130 Mbit/s",
+                "SIGNAL": "74",
+                "BARS": "▂▄▆_",
+                "SECURITY": "WPA2",
+                "CLIENT": "yes",    
+            },
+            { ... },
+            { ... },
+        ]
         """
         cmd = ["sudo", "nmcli", "dev", "wifi"]
         res = self.run_command(cmd)
@@ -152,10 +169,12 @@ def prepare_data(data):
                                 continue
                             val = single_row[ele]
                             last_index = len(single_row) - 1
-                            # if 2 consecutive elements in the row are not empty, then we have to combine them.
-                            # For eg: "120","MBits/s"
+                            # If we have reached the last element, no need to check
                             if (ele != last_index):
                                 if (single_row[ele+1] != ""):
+                                        # if 2 consecutive elements in the row are not empty,
+                                        # then we have to combine them.
+                                        # For eg: "120","MBits/s"
                                         val = val  + " " + single_row[ele+1]
                                         # save this for use in next iteration
                                         memo = single_row[ele+1]
