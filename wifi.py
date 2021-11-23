@@ -143,12 +143,13 @@ def prepare_data(data):
     temp_data = []
     for row in rows:
             single_row = row.split(" ")
-            print("##########################################################################################")
-            print(single_row)
-            print("##########################################################################################")
             formatted_data = []
-            for ele in range(0,len(single_row) - 1):
+            memo = None
+            for ele in range(0,len(single_row)):
                     if (single_row[ele] != "" or ele == 0):
+                            # If we have combined two elemets we need to skip this element
+                            if memo == single_row[ele]:
+                                continue
                             val = single_row[ele]
                             last_index = len(single_row) - 1
                             # if 2 consecutive elements in the row are not empty, then we have to combine them.
@@ -156,6 +157,9 @@ def prepare_data(data):
                             if (ele != last_index):
                                 if (single_row[ele+1] != ""):
                                         val = val  + " " + single_row[ele+1]
+                                        # save this for use in next iteration
+                                        memo = single_row[ele+1]
+
                             formatted_data.append(val)
             # Remove the last element which is always empty.
             if len(formatted_data) > 0:
