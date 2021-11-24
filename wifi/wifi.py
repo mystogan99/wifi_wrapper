@@ -1,7 +1,6 @@
-from __future__ import division
 import subprocess_wrapper as wrap
 
-class Wifi:
+class WiFi:
     """
     Presents a Python interface to the output of nmcli.
     """

@@ -6,7 +6,9 @@ wifi = Wifi()
 
 # enabled = wifi.wifi_enabled("n")
 
-connection = wifi.get_connection_status()
+# res = wifi.run_command("dev wifi")
+
+connection = wifi.scan()
 
 print("Your connection status :")
 pprint(connection) 
