@@ -128,6 +128,15 @@ class WiFi:
         formatted_data = prepare_data(res)
         return formatted_data
 
+    @classmethod
+    def create_hotspot(self, ssid, password):
+        """
+        Creates a hotspot.
+        """
+        cmd = ["sudo", "nmcli", "dev", "wifi", "hotspot", "ifname", "wlan0", "ssid", f"{ssid}", "password", f"{password}"]
+        self.run_command(cmd)
+        return
+
 
 def prepare_data(data):
     """
