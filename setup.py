@@ -7,7 +7,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 setuptools.setup(
     name='wifi_wrapper',                           
     packages=['wifi_wrapper'],                     
-    version='0.0.1',                               
+    version='0.0.2',                               
     license='MIT',                                 
     description='A python wrapper over nmcli tool for linux devices.',
     long_description=long_description,              
@@ -26,5 +26,5 @@ setuptools.setup(
         'Programming Language :: Python :: 3.9',
     ],
     
-    download_url="https://github.com/hrithik098/wifi_wrapper/archive/refs/tags/0.0.1.tar.gz",
+    download_url="https://github.com/hrithik098/wifi_wrapper/archive/refs/tags/0.0.2.tar.gz",
 )

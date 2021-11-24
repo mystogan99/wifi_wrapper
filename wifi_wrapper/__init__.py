@@ -1,1 +1,2 @@
 from wifi_wrapper.wifi import WiFi
+import wifi_wrapper.subprocess_wrapper
