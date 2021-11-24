@@ -1,4 +1,4 @@
-import subprocess_wrapper as wrap
+import wifi_wrapper.subprocess_wrapper as wrap
 
 class WiFi:
     """
