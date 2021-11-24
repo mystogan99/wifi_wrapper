@@ -37,3 +37,19 @@ Available wifi nearby:
         ]
 """
 ```
+
+## Dependency
+- Your system should have nmcli installed and you should have sudo permissions
+```console
+sudo apt install network-manager
+```
+
+- After the installation has completed, we can start the Network Manager with this command.
+```console
+sudo systemctl start NetworkManager.service
+```
+- Next, we will enable Network Manager to start on system boot with using the systemctl command below. 
+
+```console
+sudo systemctl enable NetworkManager.service
+```
