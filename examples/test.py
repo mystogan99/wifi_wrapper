@@ -1,4 +1,4 @@
-from wifi import Wifi
+from wifi_wrapper import Wifi
 from pprint import pprint
 
 
