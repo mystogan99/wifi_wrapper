@@ -132,6 +132,7 @@ class WiFi:
     def create_hotspot(self, ssid, password):
         """
         Creates a hotspot.
+        from : https://unix.stackexchange.com/a/384513
         """
         cmd = ["sudo", "nmcli", "dev", "wifi", "hotspot", "ifname", "wlan0", "ssid", f"{ssid}", "password", f"{password}"]
         self.run_command(cmd)
