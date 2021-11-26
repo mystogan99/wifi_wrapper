@@ -29,14 +29,23 @@ class WiFi:
         return nmcli_result
 
     @classmethod
+    def connected(self):
+        """
+        Returns True if the device is connected to a network.
+        """
+        cmd = ["sudo" , "nmcli", "con", "show" , "--active"]
+        res = self.run_command(cmd)
+        formatted_data = prepare_data(res)
+        return formatted_data
+
+    @classmethod
     def connect(self, ssid, password):
         """
         Connect to a network.
         """
         cmd = ["sudo", "nmcli", "dev", "wifi", "connect", f"{ssid}", "password", f"{password}"]
-        self.run_command(cmd)
-        self.ssid = ssid
-        return
+        res = self.run_command(cmd)
+        return res
 
     @classmethod
     def get_connection_status(self):
@@ -127,15 +136,46 @@ class WiFi:
         res = self.run_command(cmd)
         formatted_data = prepare_data(res)
         return formatted_data
+    
+    @classmethod
+    def disable_hotspot(self, scheme_name):
+        """
+        Stop hotspot with given scheme name.
+        """
+        cmd = ["sudo", "nmcli", "con", "down", scheme_name]
+        res = self.run_command(cmd)
+        return res
 
     @classmethod
-    def create_hotspot(self, ssid, password):
+    def create_hotspot(self, name):
         """
         Creates a hotspot.
         from : https://unix.stackexchange.com/a/384513
         """
-        cmd = ["sudo", "nmcli", "dev", "wifi", "hotspot", "ifname", "wlan0", "ssid", f"{ssid}", "password", f"{password}"]
+        cached_scan_result = self.scan()
+        cmd = ["sudo", "nmcli", "connection", "up", f"{name}"]
         self.run_command(cmd)
+        return cached_scan_result
+    
+    @classmethod
+    def create_hotspot_scheme(self, name, ssid, password):
+        """
+        Creates a scheme for connecting to hotspot.
+        """
+        # nmcli c add type wifi ifname wifi-device con-name connection-name autoconnect no ssid hotspot-ssid
+        # nmcli connection modify connection-name 802-11-wireless.mode ap 802-11-wireless.band bg ipv4.method shared
+        # nmcli connection modify connection-name wifi-sec.key-mgmt wpa-psk
+        # nmcli connection modify connection-name wifi-sec.psk "le password"
+        # nmcli connection up connection-name
+
+        cmd1 = ['sudo', 'nmcli', 'c', 'add', 'type', 'wifi', 'ifname', 'wlan0', 'con-name', f'{name}', 'autoconnect', 'no', 'ssid', f'{ssid}']
+        cmd2 = ['sudo', 'nmcli', 'connection', 'modify', f'{name}', '802-11-wireless.mode', 'ap', '802-11-wireless.band', 'bg', 'ipv4.method', 'shared']
+        cmd3 = ['sudo', 'nmcli', 'connection', 'modify', f'{name}', 'wifi-sec.key-mgmt', 'wpa-psk']
+        cmd4 = ['sudo', 'nmcli', 'connection', 'modify', f'{name}', 'wifi-sec.psk', f'{password}']
+        self.run_command(cmd1)
+        self.run_command(cmd2)
+        self.run_command(cmd3)
+        self.run_command(cmd4)
         return
 
 
@@ -195,14 +235,18 @@ def prepare_data(data):
 
     length_final_data = len(temp_data)
 
-    for j in range(1,length_final_data):
-        temp= {}
-        for i in range(0,length_final_data):
-            # Preparing the data. Traverse the temp_data (2D array) and create a dict.
-            # For eg: temp_data = [["DEVICE", "TYPE", "STATE", "CONNECTION"], ["wlan0", "wifi", "connected", "WillowCove"]]
-            # index[0][n] contains the keys and index [1][n], [2][n], [3][n]... contains the values.
-            temp[f"{temp_data[0][i]}"] = temp_data[j][i]
-        
-        final_data.append(temp)
+    try:
+
+        for j in range(1,length_final_data):
+            temp= {}
+            for i in range(0,length_final_data):
+                # Preparing the data. Traverse the temp_data (2D array) and create a dict.
+                # For eg: temp_data = [["DEVICE", "TYPE", "STATE", "CONNECTION"], ["wlan0", "wifi", "connected", "WillowCove"]]
+                # index[0][n] contains the keys and index [1][n], [2][n], [3][n]... contains the values.
+                temp[f"{temp_data[0][i]}"] = temp_data[j][i]
+            
+            final_data.append(temp)
+    except IndexError as error:
+        print("There was some error : ", error)
 
     return final_data
