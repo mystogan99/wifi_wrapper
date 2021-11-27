@@ -38,6 +38,15 @@ class WiFi:
         return formatted_data
 
     @classmethod
+    def is_hotspot_enabled(self):
+        """
+        Returns True if wifi hotspot is enabled
+        """
+        res = self.run_command(["sudo", "nmcli", "general", "status"])
+        return True if (res.find("local only") != -1) else False
+
+
+    @classmethod
     def connected(self):
         """
         Returns True if the device is connected to a network.
