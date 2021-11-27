@@ -29,13 +29,22 @@ class WiFi:
         return nmcli_result
 
     @classmethod
+    def general_status(self):
+        """
+        Returns the general status of the wifi.
+        """
+        res = self.run_command(["sudo", "nmcli", "general", "status"])
+        formatted_data = self.prepare_data(res)
+        return formatted_data
+
+    @classmethod
     def connected(self):
         """
         Returns True if the device is connected to a network.
         """
         cmd = ["sudo" , "nmcli", "con", "show" , "--active"]
         res = self.run_command(cmd)
-        formatted_data = prepare_data(res)
+        formatted_data = self.prepare_data(res)
         return formatted_data
 
     @classmethod
@@ -62,7 +71,7 @@ class WiFi:
         """
         cmd = ["sudo", "nmcli", "dev"]
         res = self.run_command(cmd)
-        formatted_data = prepare_data(res)
+        formatted_data = self.prepare_data(res)
         return formatted_data
     
     @classmethod
@@ -107,7 +116,7 @@ class WiFi:
         """
         cmd = ["sudo", "nmcli", "dev", "wifi"]
         res = self.run_command(cmd)
-        formatted_data = prepare_data(res)
+        formatted_data = self.prepare_data(res)
         return formatted_data
 
     @classmethod
@@ -134,7 +143,7 @@ class WiFi:
         """
         cmd = ["sudo", "nmcli", "c"]
         res = self.run_command(cmd)
-        formatted_data = prepare_data(res)
+        formatted_data = self.prepare_data(res)
         return formatted_data
     
     @classmethod
@@ -178,75 +187,78 @@ class WiFi:
         self.run_command(cmd4)
         return
 
+    @classmethod    
+    def prepare_data(data):
+        """
+        Returns a dict from string formatted table For eg:
 
-def prepare_data(data):
-    """
-    Returns a dict from string formatted table For eg:
+        DEVICE         TYPE      STATE         CONNECTION
+        wlan0          wifi      connected     WillowCove
+        p2p-dev-wlan0  wifi-p2p  disconnected  --
+        lo             loopback  unmanaged     --
 
-    DEVICE         TYPE      STATE         CONNECTION
-    wlan0          wifi      connected     WillowCove
-    p2p-dev-wlan0  wifi-p2p  disconnected  --
-    lo             loopback  unmanaged     --
+        >> 
+            [
+                {
+                    "CONNECTION": "WillowCove",
+                    "DEVICE": "wlan0",
+                    "STATE": "connected",
+                    "TYPE": "wifi",
+                },
+                { ... },
+                { ... },
+            ]
 
-    >> 
-        [
-            {
-                "CONNECTION": "WillowCove",
-                "DEVICE": "wlan0",
-                "STATE": "connected",
-                "TYPE": "wifi",
-            },
-            { ... },
-            { ... },
-        ]
+        """
+        final_data = []
+        if data is not None:
+            rows = data.split("\n")
+            # after splitting the data, we have a empty array in the end.
+            del rows[-1]
+            temp_data = []
+            for row in rows:
+                    single_row = row.split(" ")
+                    formatted_data = []
+                    memo = None
+                    for ele in range(0,len(single_row)):
+                            if (single_row[ele] != "" or ele == 0):
+                                    # If we have combined two elemets we need to skip this element
+                                    if memo == single_row[ele]:
+                                        continue
+                                    val = single_row[ele]
+                                    last_index = len(single_row) - 1
+                                    # If we have reached the last element, no need to check
+                                    if (ele != last_index):
+                                        if (single_row[ele+1] != ""):
+                                                # if 2 consecutive elements in the row are not empty,
+                                                # then we have to combine them.
+                                                # For eg: "120","MBits/s"
+                                                val = val  + " " + single_row[ele+1]
+                                                # save this for use in next iteration
+                                                memo = single_row[ele+1]
 
-    """
-    final_data = []
+                                    formatted_data.append(val)
+                    # Remove the last element which is always empty.
+                    if len(formatted_data) > 0:
+                        temp_data.append(formatted_data)
 
-    rows = data.split("\n")
-    # after splitting the data, we have a empty array in the end.
-    del rows[-1]
-    temp_data = []
-    for row in rows:
-            single_row = row.split(" ")
-            formatted_data = []
-            memo = None
-            for ele in range(0,len(single_row)):
-                    if (single_row[ele] != "" or ele == 0):
-                            # If we have combined two elemets we need to skip this element
-                            if memo == single_row[ele]:
-                                continue
-                            val = single_row[ele]
-                            last_index = len(single_row) - 1
-                            # If we have reached the last element, no need to check
-                            if (ele != last_index):
-                                if (single_row[ele+1] != ""):
-                                        # if 2 consecutive elements in the row are not empty,
-                                        # then we have to combine them.
-                                        # For eg: "120","MBits/s"
-                                        val = val  + " " + single_row[ele+1]
-                                        # save this for use in next iteration
-                                        memo = single_row[ele+1]
+            length_final_data = len(temp_data)
 
-                            formatted_data.append(val)
-            # Remove the last element which is always empty.
-            if len(formatted_data) > 0:
-                temp_data.append(formatted_data)
+            try:
 
-    length_final_data = len(temp_data)
+                for j in range(1,length_final_data):
+                    temp= {}
+                    for i in range(0,length_final_data):
+                        # Preparing the data. Traverse the temp_data (2D array) and create a dict.
+                        # For eg: temp_data = [["DEVICE", "TYPE", "STATE", "CONNECTION"], ["wlan0", "wifi", "connected", "WillowCove"]]
+                        # index[0][n] contains the keys and index [1][n], [2][n], [3][n]... contains the values.
+                        temp[f"{temp_data[0][i]}"] = temp_data[j][i]
+                    
+                    final_data.append(temp)
+            except IndexError as error:
+                print("There was some error : ", error)
+                return []
 
-    try:
-
-        for j in range(1,length_final_data):
-            temp= {}
-            for i in range(0,length_final_data):
-                # Preparing the data. Traverse the temp_data (2D array) and create a dict.
-                # For eg: temp_data = [["DEVICE", "TYPE", "STATE", "CONNECTION"], ["wlan0", "wifi", "connected", "WillowCove"]]
-                # index[0][n] contains the keys and index [1][n], [2][n], [3][n]... contains the values.
-                temp[f"{temp_data[0][i]}"] = temp_data[j][i]
-            
-            final_data.append(temp)
-    except IndexError as error:
-        print("There was some error : ", error)
-
-    return final_data
+            return final_data
+        else:
+            return []
