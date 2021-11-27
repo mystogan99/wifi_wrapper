@@ -197,7 +197,7 @@ class WiFi:
         return
 
     @classmethod    
-    def prepare_data(data):
+    def prepare_data(self, data):
         """
         Returns a dict from string formatted table For eg:
 
@@ -255,17 +255,18 @@ class WiFi:
 
             try:
 
-                for j in range(1,length_final_data):
+                for down in range(1,length_final_data):
                     temp= {}
-                    for i in range(0,length_final_data):
+                    for side in range(0,len(temp_data[0])):
                         # Preparing the data. Traverse the temp_data (2D array) and create a dict.
                         # For eg: temp_data = [["DEVICE", "TYPE", "STATE", "CONNECTION"], ["wlan0", "wifi", "connected", "WillowCove"]]
                         # index[0][n] contains the keys and index [1][n], [2][n], [3][n]... contains the values.
-                        temp[f"{temp_data[0][i]}"] = temp_data[j][i]
+                        temp[f"{temp_data[0][side]}"] = temp_data[down][side]
                     
                     final_data.append(temp)
             except IndexError as error:
                 print("There was some error : ", error)
+                print(temp_data)
                 return []
 
             return final_data
