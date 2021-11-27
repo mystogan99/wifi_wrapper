@@ -22,6 +22,7 @@ class WiFi:
             nmcli_result = wrap.check_output(cmd,stderr=wrap.STDOUT)
         except wrap.CalledProcessError as e:
             print(f"There was some error -> {e.output.strip()}")
+            return e.output.strip()
         else:
             nmcli_result = nmcli_result.decode('utf-8')
         # nmcli_result = nmcli_result.split('\n')
