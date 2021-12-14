@@ -44,7 +44,7 @@ class WiFi:
         Returns True if wifi hotspot is enabled
         """
         res = self.run_command(["sudo", "nmcli", "general", "status"])
-        return True if (res.find("local only") != -1) else False
+        return True if (res.find("local only") != -1 or res.find("site only") != -1) else False
 
 
     @classmethod
@@ -106,6 +106,7 @@ class WiFi:
     def scan(self):
         """
         Scans for available networks.
+        sudo nmcli -t -f SSID,SECURITY,IN-USE dev wifi list
         Result:
         [
             {
@@ -124,9 +125,10 @@ class WiFi:
             { ... },
         ]
         """
-        cmd = ["sudo", "nmcli", "dev", "wifi"]
-        res = self.run_command(cmd)
-        formatted_data = self.prepare_data(res)
+        # cmd = ["sudo", "nmcli",  "dev", "wifi"]
+        cmd1 = ["sudo", "nmcli", "-t", "-f", "SSID,SECURITY,IN-USE,SIGNAL", "dev", "wifi", "list"]
+        res = self.run_command(cmd1)
+        formatted_data = self.tersed_prep_data(res)
         return formatted_data
 
     @classmethod
@@ -197,6 +199,29 @@ class WiFi:
         self.run_command(cmd4)
         return
 
+    @classmethod
+    def tersed_prep_data(self, data):
+        """
+        Prepares data for the terminal.
+        """
+        final_data = []
+        if data is not None:
+            rows = rows = data.split("\n")
+            # after splitting the data, we have a empty array in the end.
+            del rows[-1]
+            for row in rows:
+                single_row = row.split(":")
+                temp_data = {
+                    "SSID": single_row[0],
+                    "SECURITY": single_row[1] if single_row[1] != "" else "--",
+                    "IN-USE": single_row[2],
+                    "SIGNAL": single_row[3],
+                    }
+                final_data.append(temp_data)
+            return final_data
+        else:
+            return final_data
+
     @classmethod    
     def prepare_data(self, data):
         """
@@ -238,8 +263,8 @@ class WiFi:
                                     val = single_row[ele]
                                     last_index = len(single_row) - 1
                                     # If we have reached the last element, no need to check
-                                    if (ele != last_index):
-                                        if (single_row[ele+1] != ""):
+                                    if (ele < last_index):
+                                        if (single_row[ele+1] != "" ):
                                                 # if 2 consecutive elements in the row are not empty,
                                                 # then we have to combine them.
                                                 # For eg: "120","MBits/s"
